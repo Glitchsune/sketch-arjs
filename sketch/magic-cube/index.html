@@ -24,7 +24,7 @@
 
       // init renderer
       let renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: false,
         alpha: true,
       });
       renderer.setClearColor(new THREE.Color("lightgrey"), 0);
@@ -51,7 +51,6 @@
 
       // Create a camera
       let camera = new THREE.Camera();
-      // let camera = new THREE.PerspectiveCamera(100, 640 / 480, 1, 1000);
       scene.add(camera);
 
       ////////////////////////////////////////////////////////////////////////////////
@@ -105,9 +104,16 @@
         // url of the camera parameters
         cameraParametersUrl:
           THREEx.ArToolkitContext.baseURL + "../data/data/camera_para.dat",
+
+        maxDetectionRate: 30,
+
+        // resolution of at which we detect pose in the source image
+        canvasWidth: 240,
+        canvasHeight: 180,
+
         // enable image smoothing or not for canvas copy - default to true
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingEnabled
-        imageSmoothingEnabled: true,
+        imageSmoothingEnabled: false,
       });
 
       // initialize it
@@ -132,28 +138,28 @@
 
       let p = 1.5;
       let positionScene = [
-        new THREE.Vector3(0, 0, -p / 2),
-        new THREE.Vector3(-p / 2, 0, 0),
-        new THREE.Vector3(0, 0, p / 2),
-        new THREE.Vector3(p / 2, 0, 0),
-        new THREE.Vector3(0, p / 2, 0),
         new THREE.Vector3(0, -p / 2, 0),
+        new THREE.Vector3(-p / 2, 0, 0),
+        new THREE.Vector3(0, p / 2, 0),
+        new THREE.Vector3(p / 2, 0, 0),
+        new THREE.Vector3(0, 0, -p / 2),
+        new THREE.Vector3(0, 0, p / 2),
       ];
 
       let rotationArray = [
         new THREE.Vector3(0, 0, 0),
         new THREE.Vector3(
           THREE.Math.degToRad(-90),
-          0,
-          THREE.Math.degToRad(-90)
+          THREE.Math.degToRad(-90),
+          0
         ),
-        new THREE.Vector3(THREE.Math.degToRad(180), 0, 0),
-        new THREE.Vector3(THREE.Math.degToRad(-90), 0, THREE.Math.degToRad(90)),
+        new THREE.Vector3(THREE.Math.degToRad(-180), 0, 0),
+        new THREE.Vector3(THREE.Math.degToRad(-90), THREE.Math.degToRad(90), 0),
         new THREE.Vector3(THREE.Math.degToRad(-90), 0, 0),
         new THREE.Vector3(
           THREE.Math.degToRad(-90),
-          0,
-          THREE.Math.degToRad(180)
+          THREE.Math.degToRad(180),
+          0
         ),
       ];
 
@@ -178,6 +184,18 @@
 
         markerRoot.add(markerGroup);
       }
+
+      // build a smoothedControls
+      let smoothedRoot = new THREE.Group();
+      scene.add(smoothedRoot);
+      let smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
+        lerpPosition: 0.4,
+        lerpQuaternion: 0.3,
+        lerpScale: 1,
+      });
+      // onRenderFcts.push(function (delta) {
+      //   smoothedControls.update(markerRoot);
+      // });
 
       //////////////////////////////////////////////////////////////////////////////////
       //    add an object in the scene
@@ -210,7 +228,7 @@
           });
 
           mixer = new THREE.AnimationMixer(gltf.scene);
-          var action = mixer.clipAction(gltf.animations[0]);
+          let action = mixer.clipAction(gltf.animations[0]);
           action.setLoop(THREE.LoopRepeat);
           action.play();
 
@@ -249,13 +267,13 @@
           if (markerRootArray[i].visible) {
             sceneGroup.position.copy(positionScene[i]);
             markerGroupArray[i].add(sceneGroup);
+            // smoothedControls.update(markerGroupArray[i]); //
             // console.log("visible: " + patternArray[i]);
+            if (mixer) {
+              mixer.update(delta);
+            }
             break;
           }
-        }
-
-        if (mixer) {
-          mixer.update(delta);
         }
       });
 
