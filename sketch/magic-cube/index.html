@@ -24,7 +24,7 @@
 
       // init renderer
       let renderer = new THREE.WebGLRenderer({
-        antialias: false,
+        antialias: true,
         alpha: true,
       });
       renderer.setClearColor(new THREE.Color("lightgrey"), 0);
@@ -113,7 +113,7 @@
 
         // enable image smoothing or not for canvas copy - default to true
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingEnabled
-        imageSmoothingEnabled: false,
+        imageSmoothingEnabled: true,
       });
 
       // initialize it
