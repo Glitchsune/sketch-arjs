@@ -24,10 +24,11 @@
 
       // init renderer
       let renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        antialias: false,
         alpha: true,
       });
       renderer.setClearColor(new THREE.Color("lightgrey"), 0);
+      // renderer.setPixelRatio(1 / 2);
       renderer.setSize(640, 480);
       renderer.domElement.style.position = "absolute";
       renderer.domElement.style.top = "0px";
