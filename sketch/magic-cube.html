@@ -7,10 +7,11 @@
       content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
     />
     <!-- three.js library -->
-    <script src="/sketch-arjs/js/three.js/three.min.js"></script>
-    <script src="/sketch-arjs/js/three.js/loaders/GLTFLoader.js"></script>
+    <script src="../js/three.js/three.min.js"></script>
+    <script src="../js/three.js/libs/stats.min.js"></script>
+    <script src="../js/three.js/loaders/GLTFLoader.js"></script>
     <!-- ar.js -->
-    <script src="/sketch-arjs/js/ar.js/ar.js"></script>
+    <script src="../js/ar.js/ar.js"></script>
     <script>
       THREEx.ArToolkitContext.baseURL = "../";
     </script>
@@ -24,20 +25,14 @@
 
       // init renderer
       let renderer = new THREE.WebGLRenderer({
-        antialias: false,
+        antialias: true,
         alpha: true,
       });
       renderer.setClearColor(new THREE.Color("lightgrey"), 0);
-      // renderer.setPixelRatio(1 / 2);
-      renderer.setSize(640, 480);
+      renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.domElement.style.position = "absolute";
       renderer.domElement.style.top = "0px";
       renderer.domElement.style.left = "0px";
-
-      //material color correction
-      renderer.shadowMap.enabled = true;
-      renderer.outputEncoding = THREE.sRGBEncoding;
-
       document.body.appendChild(renderer.domElement);
 
       // array of functions for the rendering loop
@@ -61,18 +56,27 @@
       let arToolkitSource = new THREEx.ArToolkitSource({
         // type of source - ['webcam', 'image', 'video']
         sourceType: "webcam",
+
+        // // to read from an image
+        // sourceType : 'image',
+        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',
+
+        // to read from a video
+        // sourceType : 'video',
+        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
+
         // // resolution of at which we initialize the source image
-        sourceWidth: 960,
-        sourceHeight: 720,
+        // sourceWidth: 640,
+        // sourceHeight: 480,
         // // resolution displayed for the source
-        displayWidth: 960,
-        displayHeight: 720,
+        // displayWidth: 640,
+        // displayHeight: 480,
       });
 
       arToolkitSource.init(function onReady() {
         setTimeout(() => {
           onResize();
-        }, 250);
+        }, 1000);
       });
 
       // handle resize
@@ -100,23 +104,32 @@
 
         // the mode of detection - ['color', 'color_and_matrix', 'mono', 'mono_and_matrix']
         detectionMode: "mono",
+
+        // type of matrix code - valid iif detectionMode end with 'matrix' - [3x3, 3x3_HAMMING63, 3x3_PARITY65, 4x4, 4x4_BCH_13_9_3, 4x4_BCH_13_5_5]
+        // matrixCodeType: "3x3",
+
         // Pattern ratio for custom markers
-        patternRatio: 0.8,
+        patternRatio: 0.5,
+
+        // Labeling mode for markers - ['black_region', 'white_region']
+        // black_region: Black bordered markers on a white background, white_region: White bordered markers on a black background
+        // labelingMode: "black_region",
+
         // url of the camera parameters
         cameraParametersUrl:
           THREEx.ArToolkitContext.baseURL + "../data/data/camera_para.dat",
 
-        maxDetectionRate: 60,
+        // tune the maximum rate of pose detection in the source image
+        maxDetectionRate: 30, //30
 
         // resolution of at which we detect pose in the source image
-        // canvasWidth: 240,
-        // canvasHeight: 180,
+        canvasWidth: 80 * 4, //640, //80*3
+        canvasHeight: 60 * 4, //480, //60*3
 
         // enable image smoothing or not for canvas copy - default to true
         // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/imageSmoothingEnabled
         imageSmoothingEnabled: true,
       });
-
       // initialize it
       arToolkitContext.init(function onCompleted() {
         // copy projection matrix to camera
@@ -126,165 +139,107 @@
       // update artoolkit on every frame
       onRenderFcts.push(function () {
         if (arToolkitSource.ready === false) return;
+
         arToolkitContext.update(arToolkitSource.domElement);
+
+        // update scene.visible if the marker is seen
+        // scene.visible = camera.visible;
       });
 
-      ////////////////////////////////////////////////////////////
-      // setup markerRoots
-      ////////////////////////////////////////////////////////////
+      ////////////////////////////////////////////////////////////////////////////////
+      //          Create a ArMarkerControls
+      ////////////////////////////////////////////////////////////////////////////////
 
-      let markerRootArray = [];
-      let markerGroupArray = [];
-      let patternArray = ["Top", "Right", "Down", "Left", "Front", "Back"];
+      // init controls for camera
+      let markerRoot = new THREE.Group();
+      scene.add(markerRoot);
+      let markerControls = new THREEx.ArMarkerControls(
+        arToolkitContext,
+        markerRoot,
+        {
+          // size of the marker in meter
+          size: 1,
 
-      let p = 1.5;
-      let positionScene = [
-        new THREE.Vector3(0, -p / 2, 0),
-        new THREE.Vector3(-p / 2, 0, 0),
-        new THREE.Vector3(0, p / 2, 0),
-        new THREE.Vector3(p / 2, 0, 0),
-        new THREE.Vector3(0, 0, -p / 2),
-        new THREE.Vector3(0, 0, p / 2),
-      ];
+          // type of marker - ['pattern', 'barcode', 'unknown' ]
+          type: "pattern",
 
-      let rotationArray = [
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(
-          THREE.Math.degToRad(-90),
-          THREE.Math.degToRad(-90),
-          0
-        ),
-        new THREE.Vector3(THREE.Math.degToRad(-180), 0, 0),
-        new THREE.Vector3(THREE.Math.degToRad(-90), THREE.Math.degToRad(90), 0),
-        new THREE.Vector3(THREE.Math.degToRad(-90), 0, 0),
-        new THREE.Vector3(
-          THREE.Math.degToRad(-90),
-          THREE.Math.degToRad(180),
-          0
-        ),
-      ];
+          // url of the pattern - IIF type='pattern'
+          patternUrl:
+            THREEx.ArToolkitContext.baseURL +
+            "../data/data/pattern-letterA.patt",
 
-      for (let i = 0; i < 6; i++) {
-        let markerRoot = new THREE.Group();
-        markerRootArray.push(markerRoot);
-        scene.add(markerRoot);
-        let markerControls = new THREEx.ArMarkerControls(
-          arToolkitContext,
-          markerRoot,
-          {
-            size: 1,
-            type: "pattern",
-            patternUrl: "../magic-cube/data/" + patternArray[i] + ".patt",
-            // changeMatrixMode: "cameraTransformMatrix",
-          }
-        );
+          // value of the barcode - IIF type='barcode'
+          // barcodeValue: null,
 
-        let markerGroup = new THREE.Group();
-        markerGroupArray.push(markerGroup);
-        markerGroup.rotation.setFromVector3(rotationArray[i]);
+          // change matrix mode - [modelViewMatrix, cameraTransformMatrix]
+          // changeMatrixMode: "cameraTransformMatrix",
 
-        markerRoot.add(markerGroup);
-      }
+          // turn on/off camera smoothing
+          // smooth: true,
+
+          // number of matrices to smooth tracking over, more = smoother but slower follow
+          // smoothCount: 5,
+
+          // distance tolerance for smoothing, if smoothThreshold # of matrices are under tolerance, tracking will stay still
+          // smoothTolerance: 0.01,
+
+          // threshold for smoothing, will keep still unless enough matrices are over tolerance
+          // smoothThreshold: 2,
+        }
+      );
 
       // build a smoothedControls
       let smoothedRoot = new THREE.Group();
       scene.add(smoothedRoot);
       let smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
-        lerpPosition: 0.4,
-        lerpQuaternion: 0.3,
+        lerpPosition: 1,
+        lerpQuaternion: 1,
         lerpScale: 1,
       });
-      // onRenderFcts.push(function (delta) {
-      //   smoothedControls.update(markerRoot);
-      // });
-
-      //////////////////////////////////////////////////////////////////////////////////
-      //    add an object in the scene
-      //////////////////////////////////////////////////////////////////////////////////
-
-      let sceneGroup = new THREE.Group();
-      let mixer;
-      //add object 3d
-      let loaderGLTF = new THREE.GLTFLoader();
-      // Load a glTF resource
-      loaderGLTF.load(
-        // resource URL
-        "./resources/MagicCube.glb",
-        // called when the resource is loaded
-        function (gltf) {
-          gltf.scene.traverse((o) => {
-            if (o.isMesh) {
-              // console.log(o.name);
-              if (o.name === "CuboInterno") {
-                o.material.side = THREE.FrontSide;
-                o.receiveShadow = true;
-              } else {
-                o.castShadow = true;
-                if (o.name !== "Marco") {
-                  // o.castShadow = true;
-                  o.receiveShadow = true;
-                }
-              }
-            }
-          });
-
-          mixer = new THREE.AnimationMixer(gltf.scene);
-          let action = mixer.clipAction(gltf.animations[0]);
-          action.setLoop(THREE.LoopRepeat);
-          action.play();
-
-          scene.add(gltf.scene);
-          let size = 1.5;
-          gltf.scene.scale.set(p, p, p);
-          sceneGroup.add(gltf.scene);
-        },
-        // called while loading is progressing
-        function (xhr) {
-          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-        },
-        // called when loading has errors
-        function (error) {
-          console.log("An error happened");
-        }
-      );
-
-      // Lights
-      let ambientLight = new THREE.AmbientLight(0xc7c2bf, 0.5);
-      let spotlight = new THREE.SpotLight(0xffa95c, 0.5);
-      spotlight.castShadow = true;
-      spotlight.position.set(0, 1.5, 0.3);
-      // spotlight.shadow.bias = 0.0001;
-      // spotlight.shadow.mapSize.width = 1024;
-      // spotlight.shadow.mapSize.height = 1024;
-      camera.add(ambientLight, spotlight);
-
-      //
       onRenderFcts.push(function (delta) {
-        // update artoolkit on every frame
-        if (arToolkitSource.ready !== false)
-          arToolkitContext.update(arToolkitSource.domElement);
+        smoothedControls.update(markerRoot);
+      });
 
-        for (let i = 0; i < 6; i++) {
-          if (markerRootArray[i].visible) {
-            sceneGroup.position.copy(positionScene[i]);
-            markerGroupArray[i].add(sceneGroup);
-            // smoothedControls.update(markerGroupArray[i]); //
-            // console.log("visible: " + patternArray[i]);
-            if (mixer) {
-              mixer.update(delta);
-            }
-            break;
-          }
-        }
+      // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
+      // scene.visible = false;
+
+      //////////////////////////////////////////////////////////////////////////////////
+      //		add an object in the scene
+      //////////////////////////////////////////////////////////////////////////////////
+
+      let arWorldRoot = smoothedRoot;
+      // add a torus knot
+      let geometry = new THREE.CubeGeometry(1, 1, 1);
+      let material = new THREE.MeshNormalMaterial({
+        transparent: true,
+        opacity: 0.5,
+        side: THREE.DoubleSide,
+      });
+      let mesh = new THREE.Mesh(geometry, material);
+      mesh.position.y = geometry.parameters.height / 2;
+      arWorldRoot.add(mesh);
+      // markerRoot.add(mesh);
+
+      geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+      material = new THREE.MeshNormalMaterial();
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.position.y = 0.5;
+      arWorldRoot.add(mesh);
+      // markerRoot.add(mesh);
+
+      onRenderFcts.push(function (delta) {
+        mesh.rotation.x += Math.PI * delta;
       });
 
       //////////////////////////////////////////////////////////////////////////////////
       //		render the whole thing on the page
       //////////////////////////////////////////////////////////////////////////////////
-
+      let stats = new Stats();
+      document.body.appendChild(stats.dom);
       // render the scene
       onRenderFcts.push(function () {
         renderer.render(scene, camera);
+        stats.update();
       });
 
       // run the rendering loop

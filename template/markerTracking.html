@@ -22,7 +22,7 @@
       //////////////////////////////////////////////////////////////////////////////////
 
       // init renderer
-      var renderer = new THREE.WebGLRenderer({
+      let renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: true,
       });
@@ -34,24 +34,24 @@
       document.body.appendChild(renderer.domElement);
 
       // array of functions for the rendering loop
-      var onRenderFcts = [];
+      let onRenderFcts = [];
 
       // init scene and camera
-      var scene = new THREE.Scene();
+      let scene = new THREE.Scene();
 
       //////////////////////////////////////////////////////////////////////////////////
       //		Initialize a basic camera
       //////////////////////////////////////////////////////////////////////////////////
 
       // Create a camera
-      var camera = new THREE.Camera();
+      let camera = new THREE.Camera();
       scene.add(camera);
 
       ////////////////////////////////////////////////////////////////////////////////
       //          handle arToolkitSource
       ////////////////////////////////////////////////////////////////////////////////
 
-      var arToolkitSource = new THREEx.ArToolkitSource({
+      let arToolkitSource = new THREEx.ArToolkitSource({
         // type of source - ['webcam', 'image', 'video']
         sourceType: "webcam",
 
@@ -96,7 +96,7 @@
       ////////////////////////////////////////////////////////////////////////////////
 
       // create atToolkitContext
-      var arToolkitContext = new THREEx.ArToolkitContext({
+      let arToolkitContext = new THREEx.ArToolkitContext({
         // debug - true if one should display artoolkit debug canvas, false otherwise
         debug: false,
 
@@ -149,7 +149,7 @@
       ////////////////////////////////////////////////////////////////////////////////
 
       // init controls for camera
-      var markerControls = new THREEx.ArMarkerControls(
+      let markerControls = new THREEx.ArMarkerControls(
         arToolkitContext,
         camera,
         {
@@ -161,7 +161,7 @@
 
           // url of the pattern - IIF type='pattern'
           patternUrl:
-            THREEx.ArToolkitContext.baseURL + "../data/data/patt.hiro",
+            THREEx.ArToolkitContext.baseURL + "../data/data/pattern-hiro.patt",
 
           // value of the barcode - IIF type='barcode'
           // barcodeValue: null,
@@ -190,19 +190,19 @@
       //////////////////////////////////////////////////////////////////////////////////
 
       // add a torus knot
-      var geometry = new THREE.CubeGeometry(1, 1, 1);
-      var material = new THREE.MeshNormalMaterial({
+      let geometry = new THREE.CubeGeometry(1, 1, 1);
+      let material = new THREE.MeshNormalMaterial({
         transparent: true,
         opacity: 0.5,
         side: THREE.DoubleSide,
       });
-      var mesh = new THREE.Mesh(geometry, material);
+      let mesh = new THREE.Mesh(geometry, material);
       mesh.position.z = geometry.parameters.height / 2;
       scene.add(mesh);
 
-      var geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-      var material = new THREE.MeshNormalMaterial();
-      var mesh = new THREE.Mesh(geometry, material);
+      geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
+      material = new THREE.MeshNormalMaterial();
+      mesh = new THREE.Mesh(geometry, material);
       mesh.position.z = 0.5;
       scene.add(mesh);
 
@@ -220,13 +220,13 @@
       });
 
       // run the rendering loop
-      var lastTimeMsec = null;
+      let lastTimeMsec = null;
       requestAnimationFrame(function animate(nowMsec) {
         // keep looping
         requestAnimationFrame(animate);
         // measure time
         lastTimeMsec = lastTimeMsec || nowMsec - 1000 / 60;
-        var deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
+        let deltaMsec = Math.min(200, nowMsec - lastTimeMsec);
         lastTimeMsec = nowMsec;
         // call each update function
         onRenderFcts.forEach(function (onRenderFct) {
