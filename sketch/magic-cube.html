@@ -25,7 +25,7 @@
 
       // init renderer
       let renderer = new THREE.WebGLRenderer({
-        antialias: true,
+        // antialias: true,
         alpha: true,
       });
       renderer.setClearColor(new THREE.Color("lightgrey"), 0);
@@ -34,7 +34,7 @@
       renderer.domElement.style.top = "0px";
       renderer.domElement.style.left = "0px";
 
-      renderer.shadowMap.enabled = true;
+      // renderer.shadowMap.enabled = true;
       //material color correction gltf
       renderer.outputEncoding = THREE.sRGBEncoding;
 
@@ -71,12 +71,12 @@
         // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
 
         //640, 480
-        // // resolution of at which we initialize the source image
-        sourceWidth: 960,
-        sourceHeight: 720,
-        // // resolution displayed for the source
-        displayWidth: 960,
-        displayHeight: 720,
+        // // // resolution of at which we initialize the source image
+        // sourceWidth: 960,
+        // sourceHeight: 720,
+        // // // resolution displayed for the source
+        // displayWidth: 960,
+        // displayHeight: 720,
       });
 
       arToolkitSource.init(function onReady() {
@@ -202,7 +202,7 @@
           {
             size: 1,
             type: "pattern",
-            patternUrl: "/data/data/" + patternArray[i] + ".patt",
+            patternUrl: "/sketch-arjs/data/data/" + patternArray[i] + ".patt",
           }
         );
 
