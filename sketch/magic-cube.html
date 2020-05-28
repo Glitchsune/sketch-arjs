@@ -33,6 +33,11 @@
       renderer.domElement.style.position = "absolute";
       renderer.domElement.style.top = "0px";
       renderer.domElement.style.left = "0px";
+
+      renderer.shadowMap.enabled = true;
+      //material color correction gltf
+      renderer.outputEncoding = THREE.sRGBEncoding;
+
       document.body.appendChild(renderer.domElement);
 
       // array of functions for the rendering loop
@@ -65,12 +70,13 @@
         // sourceType : 'video',
         // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
 
+        //640, 480
         // // resolution of at which we initialize the source image
-        // sourceWidth: 640,
-        // sourceHeight: 480,
+        sourceWidth: 960,
+        sourceHeight: 720,
         // // resolution displayed for the source
-        // displayWidth: 640,
-        // displayHeight: 480,
+        displayWidth: 960,
+        displayHeight: 720,
       });
 
       arToolkitSource.init(function onReady() {
@@ -139,95 +145,153 @@
       // update artoolkit on every frame
       onRenderFcts.push(function () {
         if (arToolkitSource.ready === false) return;
-
         arToolkitContext.update(arToolkitSource.domElement);
-
-        // update scene.visible if the marker is seen
-        // scene.visible = camera.visible;
       });
 
       ////////////////////////////////////////////////////////////////////////////////
       //          Create a ArMarkerControls
       ////////////////////////////////////////////////////////////////////////////////
+      // let patternArray = ["Top", "Right", "Down", "Left", "Front", "Back"];
+      let patternArray = [
+        "pattern-letterA",
+        "pattern-letterB",
+        "pattern-letterC",
+        "pattern-letterD",
+        "pattern-letterF",
+        "pattern-kanji",
+      ];
+
+      let scalePosition = 1.3;
+      let positionScene = [
+        new THREE.Vector3(0, -scalePosition / 2, 0),
+        new THREE.Vector3(-scalePosition / 2, 0, 0),
+        new THREE.Vector3(0, scalePosition / 2, 0),
+        new THREE.Vector3(scalePosition / 2, 0, 0),
+        new THREE.Vector3(0, 0, -scalePosition / 2),
+        new THREE.Vector3(0, 0, scalePosition / 2),
+      ];
+
+      let rotationArray = [
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(
+          THREE.Math.degToRad(-90),
+          THREE.Math.degToRad(-90),
+          0
+        ),
+        new THREE.Vector3(THREE.Math.degToRad(-180), 0, 0),
+        new THREE.Vector3(THREE.Math.degToRad(-90), THREE.Math.degToRad(90), 0),
+        new THREE.Vector3(THREE.Math.degToRad(-90), 0, 0),
+        new THREE.Vector3(
+          THREE.Math.degToRad(-90),
+          THREE.Math.degToRad(180),
+          0
+        ),
+      ];
 
       // init controls for camera
-      let markerRoot = new THREE.Group();
-      scene.add(markerRoot);
-      let markerControls = new THREEx.ArMarkerControls(
-        arToolkitContext,
-        markerRoot,
-        {
-          // size of the marker in meter
-          size: 1,
+      let markerRootArray = [];
+      let markerGroupArray = [];
 
-          // type of marker - ['pattern', 'barcode', 'unknown' ]
-          type: "pattern",
+      for (let i = 0; i < 6; i++) {
+        let markerRoot = new THREE.Group();
+        markerRootArray.push(markerRoot);
+        scene.add(markerRoot);
+        let markerControls = new THREEx.ArMarkerControls(
+          arToolkitContext,
+          markerRoot,
+          {
+            size: 1,
+            type: "pattern",
+            patternUrl: "/data/data/" + patternArray[i] + ".patt",
+          }
+        );
 
-          // url of the pattern - IIF type='pattern'
-          patternUrl:
-            THREEx.ArToolkitContext.baseURL + "/data/data/pattern-letterA.patt",
+        let markerGroup = new THREE.Group();
+        markerGroupArray.push(markerGroup);
+        markerGroup.rotation.setFromVector3(rotationArray[i]);
 
-          // value of the barcode - IIF type='barcode'
-          // barcodeValue: null,
-
-          // change matrix mode - [modelViewMatrix, cameraTransformMatrix]
-          // changeMatrixMode: "cameraTransformMatrix",
-
-          // turn on/off camera smoothing
-          // smooth: true,
-
-          // number of matrices to smooth tracking over, more = smoother but slower follow
-          // smoothCount: 5,
-
-          // distance tolerance for smoothing, if smoothThreshold # of matrices are under tolerance, tracking will stay still
-          // smoothTolerance: 0.01,
-
-          // threshold for smoothing, will keep still unless enough matrices are over tolerance
-          // smoothThreshold: 2,
-        }
-      );
-
-      // build a smoothedControls
-      let smoothedRoot = new THREE.Group();
-      scene.add(smoothedRoot);
-      let smoothedControls = new THREEx.ArSmoothedControls(smoothedRoot, {
-        lerpPosition: 1,
-        lerpQuaternion: 1,
-        lerpScale: 1,
-      });
-      onRenderFcts.push(function (delta) {
-        smoothedControls.update(markerRoot);
-      });
-
-      // as we do changeMatrixMode: 'cameraTransformMatrix', start with invisible scene
-      // scene.visible = false;
+        markerRoot.add(markerGroup);
+      }
 
       //////////////////////////////////////////////////////////////////////////////////
       //		add an object in the scene
       //////////////////////////////////////////////////////////////////////////////////
 
-      let arWorldRoot = smoothedRoot;
-      // add a torus knot
-      let geometry = new THREE.CubeGeometry(1, 1, 1);
-      let material = new THREE.MeshNormalMaterial({
-        transparent: true,
-        opacity: 0.5,
-        side: THREE.DoubleSide,
-      });
-      let mesh = new THREE.Mesh(geometry, material);
-      mesh.position.y = geometry.parameters.height / 2;
-      arWorldRoot.add(mesh);
-      // markerRoot.add(mesh);
+      // let arWorldRoot = smoothedRoot;
+      let sceneGroup = new THREE.Group();
+      let mixer;
+      //add object 3d
+      let loaderGLTF = new THREE.GLTFLoader();
+      // Load a glTF resource
+      loaderGLTF.load(
+        // resource URL
+        "./resources/magic-cube/MagicCube.glb",
+        // called when the resource is loaded
+        function (gltf) {
+          gltf.scene.traverse((o) => {
+            if (o.isMesh) {
+              // console.log(o.name);
+              if (o.name === "CuboInterno") {
+                o.material.side = THREE.FrontSide;
+                o.receiveShadow = true;
+              } else {
+                o.castShadow = true;
+                if (o.name !== "Marco") {
+                  // o.castShadow = true;
+                  // o.receiveShadow = true;
+                }
+              }
+            }
+          });
 
-      geometry = new THREE.TorusKnotGeometry(0.3, 0.1, 64, 16);
-      material = new THREE.MeshNormalMaterial();
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.position.y = 0.5;
-      arWorldRoot.add(mesh);
-      // markerRoot.add(mesh);
+          mixer = new THREE.AnimationMixer(gltf.scene);
+          let action = mixer.clipAction(gltf.animations[0]);
+          action.setLoop(THREE.LoopRepeat);
+          action.play();
+
+          gltf.scene.scale.set(scalePosition, scalePosition, scalePosition);
+          sceneGroup.add(gltf.scene);
+          // arWorldRoot.add(gltf.scene);
+        },
+        // called while loading is progressing
+        function (xhr) {
+          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+        },
+        // called when loading has errors
+        function (error) {
+          console.log("An error happened");
+        }
+      );
+
+      // Lights
+      let lightGroup = new THREE.Group();
+      let ambientLight = new THREE.AmbientLight(0xc7c2bf, 0.5);
+      // SpotLight(
+      //   (color: Integer),
+      //   (intensity: Float),
+      //   (distance: Float),
+      //   (angle: Radians),
+      //   (penumbra: Float),
+      //   (decay: Float)
+      // );
+      let spotlight = new THREE.SpotLight(0xffa95c, 1, 15, 0.12, 0.3);
+      spotlight.castShadow = true;
+      spotlight.position.set(0, 1.5, 3);
+      spotlight.target = sceneGroup;
+      scene.add(ambientLight, spotlight);
 
       onRenderFcts.push(function (delta) {
-        mesh.rotation.x += Math.PI * delta;
+        for (let i = 0; i < 6; i++) {
+          if (markerRootArray[i].visible) {
+            sceneGroup.position.copy(positionScene[i]);
+            markerGroupArray[i].add(sceneGroup);
+            // console.log("visible: " + patternArray[i]);
+            if (mixer) {
+              mixer.update(delta);
+            }
+            break;
+          }
+        }
       });
 
       //////////////////////////////////////////////////////////////////////////////////
