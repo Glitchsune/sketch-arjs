@@ -25,7 +25,7 @@
 
       // init renderer
       let renderer = new THREE.WebGLRenderer({
-        // antialias: true,
+        antialias: true,
         alpha: true,
       });
       renderer.setClearColor(new THREE.Color("lightgrey"), 0);
@@ -34,7 +34,7 @@
       renderer.domElement.style.top = "0px";
       renderer.domElement.style.left = "0px";
 
-      // renderer.shadowMap.enabled = true;
+      renderer.shadowMap.enabled = true;
       //material color correction gltf
       renderer.outputEncoding = THREE.sRGBEncoding;
 
@@ -61,22 +61,6 @@
       let arToolkitSource = new THREEx.ArToolkitSource({
         // type of source - ['webcam', 'image', 'video']
         sourceType: "webcam",
-
-        // // to read from an image
-        // sourceType : 'image',
-        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',
-
-        // to read from a video
-        // sourceType : 'video',
-        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
-
-        //640, 480
-        // // resolution of at which we initialize the source image
-        sourceWidth: 960,
-        sourceHeight: 720,
-        // // resolution displayed for the source
-        displayWidth: 960,
-        displayHeight: 720,
       });
 
       arToolkitSource.init(function onReady() {
@@ -111,19 +95,12 @@
         // the mode of detection - ['color', 'color_and_matrix', 'mono', 'mono_and_matrix']
         detectionMode: "mono",
 
-        // type of matrix code - valid iif detectionMode end with 'matrix' - [3x3, 3x3_HAMMING63, 3x3_PARITY65, 4x4, 4x4_BCH_13_9_3, 4x4_BCH_13_5_5]
-        // matrixCodeType: "3x3",
-
         // Pattern ratio for custom markers
         patternRatio: 0.5,
 
-        // Labeling mode for markers - ['black_region', 'white_region']
-        // black_region: Black bordered markers on a white background, white_region: White bordered markers on a black background
-        // labelingMode: "black_region",
-
         // url of the camera parameters
         cameraParametersUrl:
-          THREEx.ArToolkitContext.baseURL + "/data/data/camera_para.dat",
+          THREEx.ArToolkitContext.baseURL + "../data/data/camera_para.dat",
 
         // tune the maximum rate of pose detection in the source image
         maxDetectionRate: 30, //30
@@ -202,7 +179,7 @@
           {
             size: 1,
             type: "pattern",
-            patternUrl: "/sketch-arjs/data/data/" + patternArray[i] + ".patt",
+            patternUrl: "../data/data/" + patternArray[i] + ".patt",
           }
         );
 
