@@ -6,6 +6,7 @@
       name="viewport"
       content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
     />
+    <link rel="stylesheet" href="loading.css" />
     <!-- three.js library -->
     <script src="../js/three.js/three.min.js"></script>
     <script src="../js/three.js/libs/stats.min.js"></script>
@@ -17,8 +18,19 @@
     </script>
     <title>Magic Cube</title>
   </head>
-  <body style="margin: 0px; overflow: hidden;">
+  <body>
+    <section id="loading-screen">
+      <div id="loader"></div>
+    </section>
     <script>
+      let start = false;
+      const loadingManager = new THREE.LoadingManager(() => {
+        const loadingScreen = document.getElementById("loading-screen");
+        console.log("Loading complete!");
+        loadingScreen.classList.add("fade-out");
+        start = true;
+      });
+
       //////////////////////////////////////////////////////////////////////////////////
       //		Init
       //////////////////////////////////////////////////////////////////////////////////
@@ -82,7 +94,7 @@
       arToolkitSource.init(function onReady() {
         setTimeout(() => {
           onResize();
-        }, 1000);
+        }, 250);
       });
 
       // handle resize
@@ -214,7 +226,7 @@
       let sceneGroup = new THREE.Group();
       let mixer;
       //add object 3d
-      let loaderGLTF = new THREE.GLTFLoader();
+      let loaderGLTF = new THREE.GLTFLoader(loadingManager);
       // Load a glTF resource
       loaderGLTF.load(
         // resource URL
@@ -248,11 +260,12 @@
         },
         // called while loading is progressing
         function (xhr) {
-          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+          // console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
         },
         // called when loading has errors
         function (error) {
-          console.log("An error happened");
+          alert("An error happened");
+          // console.log(error);
         }
       );
 
@@ -274,15 +287,17 @@
       scene.add(ambientLight, spotlight);
 
       onRenderFcts.push(function (delta) {
-        for (let i = 0; i < 6; i++) {
-          if (markerRootArray[i].visible) {
-            sceneGroup.position.copy(positionScene[i]);
-            markerGroupArray[i].add(sceneGroup);
-            // console.log("visible: " + patternArray[i]);
-            if (mixer) {
-              mixer.update(delta);
+        if (start) {
+          for (let i = 0; i < 6; i++) {
+            if (markerRootArray[i].visible) {
+              sceneGroup.position.copy(positionScene[i]);
+              markerGroupArray[i].add(sceneGroup);
+              // console.log("visible: " + patternArray[i]);
+              if (mixer) {
+                mixer.update(delta);
+              }
+              break;
             }
-            break;
           }
         }
       });
