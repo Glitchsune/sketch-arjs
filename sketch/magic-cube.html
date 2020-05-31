@@ -71,12 +71,12 @@
         // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
 
         //640, 480
-        // // resolution of at which we initialize the source image
-        sourceWidth: 960,
-        sourceHeight: 720,
+        // resolution of at which we initialize the source image
+        // sourceWidth: 1280,
+        // sourceHeight: 960,
         // // resolution displayed for the source
-        displayWidth: 960,
-        displayHeight: 720,
+        // displayWidth: 1280,
+        // displayHeight: 960,
       });
 
       arToolkitSource.init(function onReady() {
@@ -111,15 +111,8 @@
         // the mode of detection - ['color', 'color_and_matrix', 'mono', 'mono_and_matrix']
         detectionMode: "mono",
 
-        // type of matrix code - valid iif detectionMode end with 'matrix' - [3x3, 3x3_HAMMING63, 3x3_PARITY65, 4x4, 4x4_BCH_13_9_3, 4x4_BCH_13_5_5]
-        // matrixCodeType: "3x3",
-
         // Pattern ratio for custom markers
         patternRatio: 0.5,
-
-        // Labeling mode for markers - ['black_region', 'white_region']
-        // black_region: Black bordered markers on a white background, white_region: White bordered markers on a black background
-        // labelingMode: "black_region",
 
         // url of the camera parameters
         cameraParametersUrl:
@@ -161,7 +154,7 @@
         "pattern-kanji",
       ];
 
-      let scalePosition = 1.3;
+      let scalePosition = 1.25;
       let positionScene = [
         new THREE.Vector3(0, -scalePosition / 2, 0),
         new THREE.Vector3(-scalePosition / 2, 0, 0),
@@ -202,7 +195,7 @@
           {
             size: 1,
             type: "pattern",
-            patternUrl: "/data/data/" + patternArray[i] + ".patt",
+            patternUrl: "../data/data/" + patternArray[i] + ".patt",
           }
         );
 
@@ -274,7 +267,7 @@
       //   (penumbra: Float),
       //   (decay: Float)
       // );
-      let spotlight = new THREE.SpotLight(0xffa95c, 1, 15, 0.12, 0.3);
+      let spotlight = new THREE.SpotLight(0xffa95c, 1.5, 15, 0.12, 0.3);
       spotlight.castShadow = true;
       spotlight.position.set(0, 1.5, 3);
       spotlight.target = sceneGroup;
