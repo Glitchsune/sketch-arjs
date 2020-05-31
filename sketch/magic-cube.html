@@ -6,6 +6,7 @@
       name="viewport"
       content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
     />
+    <link rel="stylesheet" href="loading.css" />
     <!-- three.js library -->
     <script src="../js/three.js/three.min.js"></script>
     <script src="../js/three.js/libs/stats.min.js"></script>
@@ -17,8 +18,19 @@
     </script>
     <title>Magic Cube</title>
   </head>
-  <body style="margin: 0px; overflow: hidden;">
+  <body>
+    <section id="loading-screen">
+      <div id="loader"></div>
+    </section>
     <script>
+      let start = false;
+      const loadingManager = new THREE.LoadingManager(() => {
+        const loadingScreen = document.getElementById("loading-screen");
+        console.log("Loading complete!");
+        loadingScreen.classList.add("fade-out");
+        start = true;
+      });
+
       //////////////////////////////////////////////////////////////////////////////////
       //		Init
       //////////////////////////////////////////////////////////////////////////////////
@@ -61,12 +73,27 @@
       let arToolkitSource = new THREEx.ArToolkitSource({
         // type of source - ['webcam', 'image', 'video']
         sourceType: "webcam",
+        // // to read from an image
+        // sourceType : 'image',
+        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',
+
+        // to read from a video
+        // sourceType : 'video',
+        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
+
+        //640, 480
+        // resolution of at which we initialize the source image
+        // sourceWidth: 1280,
+        // sourceHeight: 960,
+        // // resolution displayed for the source
+        // displayWidth: 1280,
+        // displayHeight: 960,
       });
 
       arToolkitSource.init(function onReady() {
         setTimeout(() => {
           onResize();
-        }, 1000);
+        }, 250);
       });
 
       // handle resize
@@ -130,15 +157,15 @@
       ////////////////////////////////////////////////////////////////////////////////
       // let patternArray = ["Top", "Right", "Down", "Left", "Front", "Back"];
       let patternArray = [
-        "pattern-letterA",
-        "pattern-letterB",
-        "pattern-letterC",
+        "pattern-hiro",
         "pattern-letterD",
-        "pattern-letterF",
         "pattern-kanji",
+        "pattern-letterC",
+        "pattern-letterF",
+        "pattern-letterB",
       ];
 
-      let scalePosition = 1.3;
+      let scalePosition = 1.25;
       let positionScene = [
         new THREE.Vector3(0, -scalePosition / 2, 0),
         new THREE.Vector3(-scalePosition / 2, 0, 0),
@@ -198,7 +225,7 @@
       let sceneGroup = new THREE.Group();
       let mixer;
       //add object 3d
-      let loaderGLTF = new THREE.GLTFLoader();
+      let loaderGLTF = new THREE.GLTFLoader(loadingManager);
       // Load a glTF resource
       loaderGLTF.load(
         // resource URL
@@ -232,11 +259,12 @@
         },
         // called while loading is progressing
         function (xhr) {
-          console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+          // console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
         },
         // called when loading has errors
         function (error) {
-          console.log("An error happened");
+          alert("An error happened");
+          // console.log(error);
         }
       );
 
@@ -251,22 +279,24 @@
       //   (penumbra: Float),
       //   (decay: Float)
       // );
-      let spotlight = new THREE.SpotLight(0xffa95c, 1, 15, 0.12, 0.3);
+      let spotlight = new THREE.SpotLight(0xffa95c, 1.5, 15, 0.12, 0.3);
       spotlight.castShadow = true;
       spotlight.position.set(0, 1.5, 3);
       spotlight.target = sceneGroup;
       scene.add(ambientLight, spotlight);
 
       onRenderFcts.push(function (delta) {
-        for (let i = 0; i < 6; i++) {
-          if (markerRootArray[i].visible) {
-            sceneGroup.position.copy(positionScene[i]);
-            markerGroupArray[i].add(sceneGroup);
-            // console.log("visible: " + patternArray[i]);
-            if (mixer) {
-              mixer.update(delta);
+        if (start) {
+          for (let i = 0; i < 6; i++) {
+            if (markerRootArray[i].visible) {
+              sceneGroup.position.copy(positionScene[i]);
+              markerGroupArray[i].add(sceneGroup);
+              // console.log("visible: " + patternArray[i]);
+              if (mixer) {
+                mixer.update(delta);
+              }
+              break;
             }
-            break;
           }
         }
       });
