@@ -26,7 +26,7 @@
       let start = false;
       const loadingManager = new THREE.LoadingManager(() => {
         const loadingScreen = document.getElementById("loading-screen");
-        console.log("Loading complete!");
+        // console.log("Loading complete!");
         loadingScreen.classList.add("fade-out");
         start = true;
       });
@@ -73,14 +73,6 @@
       let arToolkitSource = new THREEx.ArToolkitSource({
         // type of source - ['webcam', 'image', 'video']
         sourceType: "webcam",
-
-        // // to read from an image
-        // sourceType : 'image',
-        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/images/img.jpg',
-
-        // to read from a video
-        // sourceType : 'video',
-        // sourceUrl : THREEx.ArToolkitContext.baseURL + '../data/videos/headtracking.mp4',
 
         //640, 480
         // resolution of at which we initialize the source image
@@ -167,14 +159,6 @@
       ];
 
       let scalePosition = 1.36;
-      let positionScene = [
-        new THREE.Vector3(0, -scalePosition / 2, 0),
-        new THREE.Vector3(-scalePosition / 2, 0, 0),
-        new THREE.Vector3(0, scalePosition / 2, 0),
-        new THREE.Vector3(scalePosition / 2, 0, 0),
-        new THREE.Vector3(0, 0, -scalePosition / 2),
-        new THREE.Vector3(0, 0, scalePosition / 2),
-      ];
 
       let rotationArray = [
         new THREE.Vector3(0, 0, 0),
@@ -213,8 +197,8 @@
 
         let markerGroup = new THREE.Group();
         markerGroupArray.push(markerGroup);
+        markerGroup.position.y = -scalePosition / 2;
         markerGroup.rotation.setFromVector3(rotationArray[i]);
-
         markerRoot.add(markerGroup);
       }
 
@@ -272,14 +256,6 @@
       // Lights
       let lightGroup = new THREE.Group();
       let ambientLight = new THREE.AmbientLight(0xc7c2bf, 0.5);
-      // SpotLight(
-      //   (color: Integer),
-      //   (intensity: Float),
-      //   (distance: Float),
-      //   (angle: Radians),
-      //   (penumbra: Float),
-      //   (decay: Float)
-      // );
       let spotlight = new THREE.SpotLight(0xffa95c, 1.5, 15, 0.12, 0.3);
       spotlight.castShadow = true;
       spotlight.position.set(0, 1.5, 3);
@@ -290,7 +266,6 @@
         if (start) {
           for (let i = 0; i < 6; i++) {
             if (markerRootArray[i].visible) {
-              sceneGroup.position.copy(positionScene[i]);
               markerGroupArray[i].add(sceneGroup);
               // console.log("visible: " + patternArray[i]);
               if (mixer) {

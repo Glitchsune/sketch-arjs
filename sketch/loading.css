@@ -13,7 +13,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: #292533;
+  background-color: #161823;
   opacity: 1;
   transition: 1s opacity;
 }
@@ -32,7 +32,7 @@ body {
   margin: -75px 0 0 -75px;
   border-radius: 50%;
   border: 3px solid transparent;
-  border-top-color: #7a80ee;
+  border-top-color: #691eff;
   -webkit-animation: spin 2s linear infinite;
   animation: spin 2s linear infinite;
 }
@@ -45,7 +45,7 @@ body {
   bottom: 5px;
   border-radius: 50%;
   border: 3px solid transparent;
-  border-top-color: #fe5991;
+  border-top-color: #fa2d6c;
   -webkit-animation: spin 3s linear infinite;
   animation: spin 3s linear infinite;
 }
@@ -58,7 +58,7 @@ body {
   bottom: 15px;
   border-radius: 50%;
   border: 3px solid transparent;
-  border-top-color: #60f9ff;
+  border-top-color: #20d5ec;
   -webkit-animation: spin 1.5s linear infinite;
   animation: spin 1.5s linear infinite;
 }
